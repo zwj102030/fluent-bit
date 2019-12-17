@@ -31,7 +31,7 @@ struct query_status {
     time_t updated;
 };
 
-static int cb_cursor_check(void *data, int argc, char **argv, char **cols)
+static int cb_cursor_get(void *data, int argc, char **argv, char **cols)
 {
     struct query_status *qs = data;
 
@@ -39,6 +39,14 @@ static int cb_cursor_check(void *data, int argc, char **argv, char **cols)
     qs->updated = atoll(argv[1]);      /* timestamp     */
     qs->rows++;
 
+    return 0;
+}
+
+static int cb_cursor_check(void *data, int argc, char **argv, char **cols)
+{
+    struct query_status *qs = data;
+
+    qs->rows++;
     return 0;
 }
 
@@ -80,11 +88,10 @@ int flb_systemd_db_set_cursor(struct flb_systemd_config *ctx, const char *cursor
 
     /* Check if the file exists */
     memset(&qs, '\0', sizeof(qs));
-    ret = flb_sqldb_query(ctx->db,
-                          SQL_GET_CURSOR, cb_cursor_check, &qs);
+    ret = flb_sqldb_query(ctx->db, SQL_CHECK_CURSOR, cb_cursor_check, &qs);
 
+    /* If no previous rows exists, we need to insert */
     if (qs.rows == 0) {
-        /* Register the cursor */
         snprintf(query, sizeof(query) - 1,
                  SQL_INSERT_CURSOR,
                  cursor, time(NULL));
@@ -96,11 +103,8 @@ int flb_systemd_db_set_cursor(struct flb_systemd_config *ctx, const char *cursor
         return 0;
     }
 
-    /* Register the cursor */
-    flb_free(qs.cursor);
-    snprintf(query, sizeof(query) - 1,
-             SQL_UPDATE_CURSOR,
-             cursor, time(NULL));
+    /* Update row */
+    snprintf(query, sizeof(query) - 1, SQL_UPDATE_CURSOR, cursor, time(NULL));
     ret = flb_sqldb_query(ctx->db,
                           query, NULL, NULL);
     if (ret == FLB_ERROR) {
@@ -116,7 +120,7 @@ char *flb_systemd_db_get_cursor(struct flb_systemd_config *ctx)
 
     memset(&qs, '\0', sizeof(qs));
     ret = flb_sqldb_query(ctx->db,
-                          SQL_GET_CURSOR, cb_cursor_check, &qs);
+                          SQL_GET_CURSOR, cb_cursor_get, &qs);
     if (ret != FLB_OK) {
         return NULL;
     }

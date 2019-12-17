@@ -265,8 +265,11 @@ static int in_systemd_collect(struct flb_input_instance *i_ins,
 #ifdef FLB_HAVE_SQLDB
     /* Save cursor */
     if (ctx->db) {
-        sd_journal_get_cursor(ctx->j, &cursor);
-        if (cursor) {
+        ret = sd_journal_get_cursor(ctx->j, &cursor);
+        if (ret < 0) {
+            flb_error("[in_systemd] could not retrieve Journal cursor");
+        }
+        else {
             flb_systemd_db_set_cursor(ctx, cursor);
             flb_free(cursor);
         }

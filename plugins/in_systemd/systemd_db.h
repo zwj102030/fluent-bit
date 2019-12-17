@@ -33,8 +33,11 @@
     "  updated INTEGER"                                                 \
     ");"
 
-#define SQL_GET_CURSOR \
+#define SQL_GET_CURSOR                          \
     "SELECT * FROM in_systemd_cursor;"
+
+#define SQL_CHECK_CURSOR                        \
+    "SELECT updated FROM in_systemd_cursor;"
 
 #define SQL_INSERT_CURSOR                               \
     "INSERT INTO in_systemd_cursor (cursor, updated)"   \
