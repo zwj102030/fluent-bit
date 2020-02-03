@@ -137,6 +137,9 @@ void flb_test_filter_grep_invalid(void)
         snprintf(p, sizeof(p), "[%d, {\"val\": \"%d\",\"END_KEY\": \"JSON_END\"}]", i, (i * i));
         bytes = flb_lib_push(ctx, in_ffd, p, strlen(p));
         TEST_CHECK(bytes == -1);
+        if (bytes != -1) {
+            printf("bytes => %i\n", bytes);
+        }
     }
 
     flb_stop(ctx);
