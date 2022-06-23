@@ -36,6 +36,7 @@ jobs:
       - name: Run the tests on this runner
         timeout-minutes: 45
         run: |
+          export TEST_DIRECTORY=$PWD/examples/perf_test
           curl -L https://raw.githubusercontent.com/fluent/fluent-bit-ci/master/scripts/docker-compose-monitor.sh | bash
         shell: bash
         env:
